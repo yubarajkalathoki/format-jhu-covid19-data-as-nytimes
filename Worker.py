@@ -1,26 +1,32 @@
 import urllib.request
 import csv
 
-casesFile = open("us_cases.csv")
-deathsFile = open("us_deaths.csv")
-
-casesReader = csv.DictReader(casesFile)
-deathsReader = csv.DictReader(deathsFile)
-
 deathFileUrl = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_US.csv"
 confirmedFileUrl = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_US.csv"
 deathFileName = "deaths-us.csv"
 confirmedFileName = "confirmed-us.csv"
 
-# cr = {}
 
 def downloadCSV(url, filename):
     print(f"Downloading {filename}")
     urllib.request.urlretrieve(url, filename)
     print(f"{filename} Download success!")
 
+def downloadRequest():
+    print("Requesting to download updated file")
+    
+    downloadCSV(confirmedFileUrl,  confirmedFileName)
+    downloadCSV(deathFileUrl,  deathFileName)
 
-# deathData = []
+    print("All files downloaded successfully.")
+
+downloadRequest()
+
+casesFile = open(confirmedFileName)
+deathsFile = open(deathFileName)
+
+casesReader = csv.DictReader(casesFile)
+deathsReader = csv.DictReader(deathsFile)
 
 headersColumn = ["date", "county", "state", "case", "death"]
 
@@ -53,6 +59,9 @@ casesDictionary = DataDictionary()
 deathsDictionary = DataDictionary()
 
 def start():
+    
+    print("Processing files...")
+
     noOfColumns = len(next(casesReader))
     casesFile.seek(0) # starts to read from 0th index
     headerList = casesReader.fieldnames
@@ -89,56 +98,11 @@ def start():
     writeCsv(confirmedList)
 
 
-# def parseCSV(cases):
-#     print(f"Processing {cases}")
-#     casesFile = open(cases, newline="")
-#     with casesFile:
-#         readerData = csv.DictReader(casesFile)
-#         noOfColumns = len(next(readerData))
-#         casesFile.seek(0)
-#         headerList = readerData.fieldnames
-#         dates = []
-#         for col in range(12, noOfColumns):
-#             dates.append(headerList[col])
-#         confirmedList = []
-#         next(readerData) # Skiping the headers row before processsing
-#         deathReader = getDeathsReader()
-#         next(deathReader) # Skiping the headers row before processsing
-#         for row in readerData:
-#             for date in dates:
-#                 totalCases = 0
-#                 totalDeaths = 0
-#                 for casesItem in readerData:
-#                     totalCases = totalCases + int(casesItem[date])
-#                 for deathItem in deathReader:
-#                     totalDeaths = totalDeaths + int(deathItem[date])
-#                 confirmedList.append(CSVData(date, row["Admin2"], row["Province_State"], totalCases, totalDeaths))
-#         writeCsv(confirmedList)
-#         # for lis in confirmedList:
-#         #     print(f"{lis.date}, {lis.county}, {lis.state}, {lis.case}, {lis.death}")
-
-#         # print(f"confirmed {confirmedList}")     
-#         # print(f"Successfully processed {filename}")
-
 
 def getSum(date, data):
-    # f = ""
-    # data = ""
-    # if(type == "cases"):
-    #     f=casesFile
-    #     data = casesReader
-    # else:
-    #     f=deathsFile   
-    #     data = deathsReader
-    # f.seek(0)
-    # next(data)
-    # print(date)
     dataList = list(data)
     total = 0
     for row in dataList:
-        # print(row)
-        # print(date)
-        # print(f" {date} : {row[date]}")
         total = total + int(row[date])
     return total
 
@@ -148,30 +112,20 @@ def writeCsv(datas):
         writer.writeheader()
         for lis in datas:
             writer.writerow({"date" : lis.date, "county": lis.county, "state": lis.state, "case": lis.case, "death": lis.death})
-
+        csvfile.close()
 
 
 def setTotalCases(dateList, crList, drList):
-    # print(dateList)
-    # dateList = list(dates)
-    # crList = list(casesReader)
-    # print(len(crList))
-    # for i in crList:
-    #     print(i)
-    # drList = list(deathsReader)
     for date in dateList:
-        # print(date)
         casesDictionary.add(date , getSum(date, crList))
         deathsDictionary.add(date , getSum(date, drList))
-    # print(casesDictionary)
-    # print(deathsDictionary)
 
-
-# parseCSV("us_cases.csv")
+print("Starting script.")
 
 start()
 
 casesFile.close()
 deathsFile.close()
 
+print("Process Completed successfully.")
 

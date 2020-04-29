@@ -7,16 +7,16 @@ deathFileName = "deaths-us.csv"
 confirmedFileName = "confirmed-us.csv"
 
 
-def downloadCSV(url, filename):
+def download_csv(url, filename):
     print(f"Downloading {filename}")
     urllib.request.urlretrieve(url, filename)
     print(f"{filename} Download success!")
 
-def downloadRequest():
+def download_request():
     print("Requesting to download updated file")
     
-    downloadCSV(confirmedFileUrl,  confirmedFileName)
-    downloadCSV(deathFileUrl,  deathFileName)
+    download_csv(confirmedFileUrl, confirmedFileName)
+    download_csv(deathFileUrl, deathFileName)
 
     print("All files downloaded successfully.")
 
@@ -62,40 +62,40 @@ def start():
     
     print("Processing files...")
 
-    noOfColumns = len(next(casesReader))
+    no_of_columns = len(next(casesReader))
     casesFile.seek(0) # starts to read from 0th index
-    headerList = casesReader.fieldnames
+    header_list = casesReader.fieldnames
     dates = []
-    for col in range(11, noOfColumns):
-        dates.append(headerList[col])
-    confirmedList = []
-    next(casesReader) # Skiping the headers row before processsing
+    for col in range(11, no_of_columns):
+        dates.append(header_list[col])
+    confirmed_list = []
+    next(casesReader) # Skipping the headers row before processing
 
-    next(deathsReader) # Skiping the headers row before processsing
+    next(deathsReader) # Skipping the headers row before processing
     
-    listMaker = casesReader
-    cr = list(listMaker)
+    list_maker = casesReader
+    cr = list(list_maker)
 
     uids = []
     for case in cr:
         uids.append(case["UID"])
     dr = list(deathsReader)
-    dateList = list(dates)
+    date_list = list(dates)
     count = 0
-    setTotalCases(uids, cr, dr)
+    set_total_cases(uids, cr, dr)
     for uid in uids:
         case = casesDictionary.get(uid, "")
         death = deathsDictionary.get(uid, "")
-        for date  in dateList:
+        for date  in date_list:
             count += 1
             try:
-                confirmedList.append(CSVData(date, case["Admin2"], case["Province_State"], int(case[date]), int(death[date])))
+                confirmed_list.append(CSVData(date, case["Admin2"], case["Province_State"], int(case[date]), int(death[date])))
             except Exception as e:
                 print(f"Error: {e}")
     print(f"No of data generated is: {count}")
-    writeCsv(confirmedList)
+    write_csv(confirmed_list)
 
-def writeCsv(datas):
+def write_csv(datas):
     with open('us_cases_and_deaths.csv', 'w', newline='') as csvfile:
         writer = csv.DictWriter(csvfile, fieldnames=headersColumn)
         writer.writeheader()
@@ -103,13 +103,13 @@ def writeCsv(datas):
             writer.writerow({"date" : lis.date, "county": lis.county, "state": lis.state, "case": lis.case, "death": lis.death})
         csvfile.close()
 
-def setTotalCases(uids, crList, drList):
+def set_total_cases(uids, crList, drList):
     for uid in uids:   
         for data in crList:
-            if(uid == data["UID"]):
+            if uid == data["UID"]:
                 casesDictionary.add(uid , data)
         for data in drList:
-            if(uid == data["UID"]):
+            if uid == data["UID"]:
                 deathsDictionary.add(uid , data)
 
 print("Starting script.")

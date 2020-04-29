@@ -6,12 +6,18 @@ confirmedFileUrl = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/ma
 deathFileName = "deaths-us.csv"
 confirmedFileName = "confirmed-us.csv"
 
-
+"""
+This method downloads the csv files from given url and alos the filename to save
+"""
 def download_csv(url, filename):
     print(f"Downloading {filename}")
     urllib.request.urlretrieve(url, filename)
     print(f"{filename} Download success!")
 
+
+"""
+CAll this method to request download
+"""
 def download_request():
     print("Requesting to download updated file")
     
@@ -20,16 +26,23 @@ def download_request():
 
     print("All files downloaded successfully.")
 
-# downloadRequest()
+# Requesting to download csv files for further processing.
+download_request()
 
+# Opening the files
 casesFile = open(confirmedFileName)
 deathsFile = open(deathFileName)
 
+# Reading the files
 casesReader = csv.DictReader(casesFile)
 deathsReader = csv.DictReader(deathsFile)
 
+# These are the column headers to keep in newly generated csv files.
 headersColumn = ["date", "county", "state", "case", "death"]
 
+"""
+The POJO class to store the data for CSV writing.
+"""
 class CSVData:
     date = ""
     county = ""
@@ -44,6 +57,10 @@ class CSVData:
         self.case = case
         self.death = death
 
+
+"""
+The custom dictionary class for storing the key value pairs.
+"""
 class DataDictionary(dict): 
   
     # __init__ function 
@@ -58,6 +75,10 @@ class DataDictionary(dict):
 casesDictionary = DataDictionary()
 deathsDictionary = DataDictionary()
 
+
+"""
+The main method for actual processing
+"""
 def start():
     
     print("Processing files...")
@@ -82,7 +103,7 @@ def start():
     dr = list(deathsReader)
     date_list = list(dates)
     count = 0
-    set_total_cases(uids, cr, dr)
+    update_dictionary(uids, cr, dr)
     for uid in uids:
         case = casesDictionary.get(uid, "")
         death = deathsDictionary.get(uid, "")
@@ -95,6 +116,9 @@ def start():
     print(f"No of data generated is: {count}")
     write_csv(confirmed_list)
 
+"""
+Writes the given data into the CSV file
+"""
 def write_csv(datas):
     with open('us_cases_and_deaths.csv', 'w', newline='') as csvfile:
         writer = csv.DictWriter(csvfile, fieldnames=headersColumn)
@@ -103,7 +127,10 @@ def write_csv(datas):
             writer.writerow({"date" : lis.date, "county": lis.county, "state": lis.state, "case": lis.case, "death": lis.death})
         csvfile.close()
 
-def set_total_cases(uids, crList, drList):
+"""
+Adds the data into dictionary adding UID as a key and the full row as a value.
+"""
+def update_dictionary(uids, crList, drList):
     for uid in uids:   
         for data in crList:
             if uid == data["UID"]:

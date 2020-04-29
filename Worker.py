@@ -1,5 +1,8 @@
 import urllib.request
 import csv
+from datetime import datetime
+
+MONTH_TO_IGNORE = ["January", "February"]
 
 deathFileUrl = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_US.csv"
 confirmedFileUrl = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_US.csv"
@@ -9,6 +12,8 @@ confirmedFileName = "confirmed-us.csv"
 """
 This method downloads the csv files from given url and alos the filename to save
 """
+
+
 def download_csv(url, filename):
     print(f"Downloading {filename}")
     urllib.request.urlretrieve(url, filename)
@@ -18,16 +23,19 @@ def download_csv(url, filename):
 """
 CAll this method to request download
 """
+
+
 def download_request():
     print("Requesting to download updated file")
-    
+
     download_csv(confirmedFileUrl, confirmedFileName)
     download_csv(deathFileUrl, deathFileName)
 
     print("All files downloaded successfully.")
 
+
 # Requesting to download csv files for further processing.
-download_request()
+# download_request()
 
 # Opening the files
 casesFile = open(confirmedFileName)
@@ -43,6 +51,8 @@ headersColumn = ["date", "county", "state", "case", "death"]
 """
 The POJO class to store the data for CSV writing.
 """
+
+
 class CSVData:
     date = ""
     county = ""
@@ -50,7 +60,7 @@ class CSVData:
     case = 0
     death = 0
 
-    def __init__(self, date, county, state, case = 0, death = 0):
+    def __init__(self, date, county, state, case=0, death=0):
         self.date = date
         self.county = county
         self.state = state
@@ -61,39 +71,59 @@ class CSVData:
 """
 The custom dictionary class for storing the key value pairs.
 """
-class DataDictionary(dict): 
-  
+
+
+class DataDictionary(dict):
+
     # __init__ function 
-    def __init__(self): 
-        self = dict() 
-          
-    # Function to add key:value 
-    def add(self, key, value): 
-        self[key] = value 
+    def __init__(self):
+        self = dict()
+
+        # Function to add key:value
+
+    def add(self, key, value):
+        self[key] = value
 
 
 casesDictionary = DataDictionary()
 deathsDictionary = DataDictionary()
 
+"""
+Checks whether the date contains January or February
+"""
+
+
+def is_eligible_to_ignore(date):
+    date_object = datetime.strptime(date, "%m/%d/%y")
+    month = str(date_object.strftime("%B"))
+    if month in MONTH_TO_IGNORE:
+        return True
+    else:
+        return False
+
 
 """
 The main method for actual processing
 """
+
+
 def start():
-    
     print("Processing files...")
 
     no_of_columns = len(next(casesReader))
-    casesFile.seek(0) # starts to read from 0th index
+    casesFile.seek(0)  # starts to read from 0th index
     header_list = casesReader.fieldnames
     dates = []
     for col in range(11, no_of_columns):
-        dates.append(header_list[col])
-    confirmed_list = []
-    next(casesReader) # Skipping the headers row before processing
+        date = str(header_list[col])
+        if is_eligible_to_ignore(date) is False:
+            dates.append(date)
 
-    next(deathsReader) # Skipping the headers row before processing
-    
+    confirmed_list = []
+    next(casesReader)  # Skipping the headers row before processing
+
+    next(deathsReader)  # Skipping the headers row before processing
+
     list_maker = casesReader
     cr = list(list_maker)
 
@@ -107,37 +137,46 @@ def start():
     for uid in uids:
         case = casesDictionary.get(uid, "")
         death = deathsDictionary.get(uid, "")
-        for date  in date_list:
+        for date in date_list:
             count += 1
             try:
-                confirmed_list.append(CSVData(date, case["Admin2"], case["Province_State"], int(case[date]), int(death[date])))
+                confirmed_list.append(
+                    CSVData(date, case["Admin2"], case["Province_State"], int(case[date]), int(death[date])))
             except Exception as e:
                 print(f"Error: {e}")
     print(f"No of data generated is: {count}")
     write_csv(confirmed_list)
 
+
 """
 Writes the given data into the CSV file
 """
+
+
 def write_csv(datas):
     with open('us_cases_and_deaths.csv', 'w', newline='') as csvfile:
         writer = csv.DictWriter(csvfile, fieldnames=headersColumn)
         writer.writeheader()
         for lis in datas:
-            writer.writerow({"date" : lis.date, "county": lis.county, "state": lis.state, "case": lis.case, "death": lis.death})
+            writer.writerow(
+                {"date": lis.date, "county": lis.county, "state": lis.state, "case": lis.case, "death": lis.death})
         csvfile.close()
+
 
 """
 Adds the data into dictionary adding UID as a key and the full row as a value.
 """
+
+
 def update_dictionary(uids, crList, drList):
-    for uid in uids:   
+    for uid in uids:
         for data in crList:
             if uid == data["UID"]:
-                casesDictionary.add(uid , data)
+                casesDictionary.add(uid, data)
         for data in drList:
             if uid == data["UID"]:
-                deathsDictionary.add(uid , data)
+                deathsDictionary.add(uid, data)
+
 
 print("Starting script.")
 
@@ -147,4 +186,3 @@ casesFile.close()
 deathsFile.close()
 
 print("Process Completed successfully.")
-

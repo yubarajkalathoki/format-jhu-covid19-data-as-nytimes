@@ -20,7 +20,7 @@ def downloadRequest():
 
     print("All files downloaded successfully.")
 
-downloadRequest()
+# downloadRequest()
 
 casesFile = open(confirmedFileName)
 deathsFile = open(deathFileName)
@@ -65,11 +65,9 @@ def start():
     noOfColumns = len(next(casesReader))
     casesFile.seek(0) # starts to read from 0th index
     headerList = casesReader.fieldnames
-    # print(headerList)
     dates = []
     for col in range(11, noOfColumns):
         dates.append(headerList[col])
-    print(len(dates))
     confirmedList = []
     next(casesReader) # Skiping the headers row before processsing
 
@@ -77,34 +75,25 @@ def start():
     
     listMaker = casesReader
     cr = list(listMaker)
-    # for c in cr:
-    #     print(c)
+
+    uids = []
+    for case in cr:
+        uids.append(case["UID"])
     dr = list(deathsReader)
-    # print(f"len of cr {len(next(casesReader))}")
     dateList = list(dates)
     count = 0
-    setTotalCases(list(dates), cr, dr)
-    print("called total case method")
-    for date in dateList:
-        # print(date)
-        tc = casesDictionary.get(date, "")
-        # print(f"{date} -> {tc}")
-        td = deathsDictionary.get(date, "")
-        for row  in cr:
+    setTotalCases(uids, cr, dr)
+    for uid in uids:
+        case = casesDictionary.get(uid, "")
+        death = deathsDictionary.get(uid, "")
+        for date  in dateList:
             count += 1
-            #  print(f"Added {date}")
-            confirmedList.append(CSVData(date, row["Admin2"], row["Province_State"], tc, td))
-    print(count)
+            try:
+                confirmedList.append(CSVData(date, case["Admin2"], case["Province_State"], int(case[date]), int(death[date])))
+            except Exception as e:
+                print(f"Error: {e}")
+    print(f"No of data generated is: {count}")
     writeCsv(confirmedList)
-
-
-
-def getSum(date, data):
-    dataList = list(data)
-    total = 0
-    for row in dataList:
-        total = total + int(row[date])
-    return total
 
 def writeCsv(datas):
     with open('us_cases_and_deaths.csv', 'w', newline='') as csvfile:
@@ -114,11 +103,14 @@ def writeCsv(datas):
             writer.writerow({"date" : lis.date, "county": lis.county, "state": lis.state, "case": lis.case, "death": lis.death})
         csvfile.close()
 
-
-def setTotalCases(dateList, crList, drList):
-    for date in dateList:
-        casesDictionary.add(date , getSum(date, crList))
-        deathsDictionary.add(date , getSum(date, drList))
+def setTotalCases(uids, crList, drList):
+    for uid in uids:   
+        for data in crList:
+            if(uid == data["UID"]):
+                casesDictionary.add(uid , data)
+        for data in drList:
+            if(uid == data["UID"]):
+                deathsDictionary.add(uid , data)
 
 print("Starting script.")
 

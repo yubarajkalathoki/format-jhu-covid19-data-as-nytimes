@@ -10,7 +10,7 @@ deathFileName = "deaths-us.csv"
 confirmedFileName = "confirmed-us.csv"
 
 """
-This method downloads the csv files from given url and alos the filename to save
+This method downloads the csv files from given url and also saves the file with the given name.
 """
 
 

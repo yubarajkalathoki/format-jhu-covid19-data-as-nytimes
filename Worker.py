@@ -35,7 +35,7 @@ def download_request():
 
 
 # Requesting to download csv files for further processing.
-# download_request()
+download_request()
 
 # Opening the files
 casesFile = open(confirmedFileName)

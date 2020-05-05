@@ -165,7 +165,7 @@ def write_csv(datas):
         writer.writeheader()
         for lis in datas:
             writer.writerow(
-                {"date": lis.date, "county": lis.county, "state": lis.state, "case": lis.cases, "death": lis.deaths})
+                {"date": lis.date, "county": lis.county, "state": lis.state, "cases": lis.cases, "deaths": lis.deaths})
         csvfile.close()
 
 

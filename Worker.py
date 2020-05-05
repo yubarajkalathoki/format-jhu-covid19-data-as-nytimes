@@ -4,6 +4,8 @@ from datetime import datetime
 
 MONTH_TO_IGNORE = ["January", "February"]
 
+CALIFORNIA_COUNTIES_TO_IGNORE = ["San Diego", "Los Angeles", "Orange"]
+
 deathFileUrl = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_US.csv"
 confirmedFileUrl = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_US.csv"
 deathFileName = "deaths-us.csv"
@@ -35,7 +37,7 @@ def download_request():
 
 
 # Requesting to download csv files for further processing.
-download_request()
+# download_request()
 
 # Opening the files
 casesFile = open(confirmedFileName)
@@ -57,15 +59,15 @@ class CSVData:
     date = ""
     county = ""
     state = ""
-    case = 0
-    death = 0
+    cases = 0
+    deaths = 0
 
-    def __init__(self, date, county, state, case=0, death=0):
+    def __init__(self, date, county, state, cases=0, deaths=0):
         self.date = date
         self.county = county
         self.state = state
-        self.case = case
-        self.death = death
+        self.cases = cases
+        self.deaths = deaths
 
 
 """
@@ -119,7 +121,7 @@ def start():
         if is_eligible_to_ignore(date) is False:
             dates.append(date)
 
-    confirmed_list = []
+    final_list = []
     next(casesReader)  # Skipping the headers row before processing
 
     next(deathsReader)  # Skipping the headers row before processing
@@ -138,14 +140,18 @@ def start():
         case = casesDictionary.get(uid, "")
         death = deathsDictionary.get(uid, "")
         for date in date_list:
-            count += 1
             try:
-                confirmed_list.append(
-                    CSVData(date, case["Admin2"], case["Province_State"], int(case[date]), int(death[date])))
+                county = case["Admin2"]
+                state = case["Province_State"]
+                # Ignoring the counties San Diego, Los Angeles and Orange from California
+                if not (state == "California" and county in CALIFORNIA_COUNTIES_TO_IGNORE):
+                    count += 1
+                    final_list.append(
+                        CSVData(date, county, state, int(case[date]), int(death[date])))
             except Exception as e:
                 print(f"Error: {e}")
     print(f"No of data generated is: {count}")
-    write_csv(confirmed_list)
+    write_csv(final_list)
 
 
 """
@@ -159,7 +165,7 @@ def write_csv(datas):
         writer.writeheader()
         for lis in datas:
             writer.writerow(
-                {"date": lis.date, "county": lis.county, "state": lis.state, "case": lis.case, "death": lis.death})
+                {"date": lis.date, "county": lis.county, "state": lis.state, "case": lis.cases, "death": lis.deaths})
         csvfile.close()
 
 

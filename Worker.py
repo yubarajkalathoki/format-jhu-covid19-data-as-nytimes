@@ -37,7 +37,7 @@ def download_request():
 
 
 # Requesting to download csv files for further processing.
-# download_request()
+download_request()
 
 # Opening the files
 casesFile = open(confirmedFileName)
@@ -48,7 +48,7 @@ casesReader = csv.DictReader(casesFile)
 deathsReader = csv.DictReader(deathsFile)
 
 # These are the column headers to keep in newly generated csv files.
-headersColumn = ["date", "county", "state", "case", "death"]
+headersColumn = ["date", "county", "state", "cases", "deaths"]
 
 """
 The POJO class to store the data for CSV writing.
